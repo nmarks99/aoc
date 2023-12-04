@@ -1,8 +1,7 @@
 use std::fs;
 use std::collections::HashMap;
-use std::hash::Hash;
 
-fn word_nums(msg: &String) -> u32 {
+fn get_line_value(msg: &String) -> u32 {
 
     let mut word_nums: HashMap<&str, u8> = HashMap::new();
     word_nums.insert("one", 1);
@@ -15,21 +14,16 @@ fn word_nums(msg: &String) -> u32 {
     word_nums.insert("eight", 8);
     word_nums.insert("nine", 9);
     
-    // let mut string_out = String::new();
     let mut map1: HashMap<usize, u8> = HashMap::new();
     let mut map2: HashMap<usize, u8> = HashMap::new();
-
+    
     for k in word_nums.keys() {
-        let first = msg.find(k);
-        if first.is_some() {
-            let val = word_nums.get(k).unwrap();
-            // let length = k.len();
-            let i0 = first.unwrap();
-            // let i1 = i0 + length;
-            map1.insert(i0, *val);
+        let v: Vec<_> = msg.match_indices(k).collect();
+        for i in 0..v.len() {
+            map1.insert(v[i].0 as usize, *word_nums.get(k).unwrap());
         }
     }
-    
+
     for (i,v) in msg.chars().enumerate() {
         if v.is_numeric() {
             map2.insert(i,v.to_digit(10).unwrap() as u8);
@@ -50,37 +44,9 @@ fn word_nums(msg: &String) -> u32 {
     val_int
 }
 
-// fn get_line_val(msg: &String) -> u32 {
-//
-//     let mut first: Option<char> = None;
-//     let mut last: Option<char> = None;
-//     for c in msg.chars() {
-//         if c.is_numeric() {
-//             if first.is_none() {
-//                 first = Some(c);
-//             }
-//             else {
-//                 last = Some(c);
-//             }
-//         }
-//     }
-//     if first.is_none() {
-//         return 0u32;
-//     }
-//     if last.is_none() {
-//         last = first;
-//     }
-//     
-//     let mut str_val = String::new();
-//     str_val.push(first.expect("No first"));
-//     str_val.push(last.expect("No last"));
-//     let val_int: u32 = str_val.parse().expect("Cannot convert to str_val to u32");
-//     val_int
-// }
 
 fn main() {
-
-
+    
     let file_path: &str = "./files/day1.txt";
     let cont : Vec<u8> = fs::read(file_path).expect("Could not read file");
 
@@ -100,8 +66,7 @@ fn main() {
     let mut total: u32 = 0;
     for li in data {
         println!("line: {}", li);
-        let v: u32 = word_nums(&li);
-        // let v: u32 = get_line_val(&li);
+        let v: u32 = get_line_value(&li);
         println!("val = {}", v);
         total = total + v;
     }
