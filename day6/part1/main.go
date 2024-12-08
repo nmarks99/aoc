@@ -33,8 +33,8 @@ type Heading int8;
 
 const (
     North Heading = iota
-    South
     East
+    South
     West
 )
 
@@ -51,6 +51,7 @@ func NewGuard(row0 int, col0 int) Guard {
         col : col0,
         heading: North,
         in_map : true,
+        visited : [][]int{{row0,col0}},
     }
 }
 
@@ -75,14 +76,12 @@ func (g Guard) PrintInfo() {
 
 func (g *Guard) addIfUnique(point [2]int) {
     var unique bool = true
-   
+
     if len(g.visited) > 0 {
-        for i := 0; i < len(g.visited[0]); i++ {
-            for j := 0; j < 2; j++ {
-                if i == point[0] && j == point[1] {
-                    unique = false
-                    break
-                }
+        for i := 0; i < len(g.visited); i++ {
+            if g.visited[i][0] == point[0] && g.visited[i][1] == point[1] {
+                unique = false
+                break
             }
         }
     }
@@ -94,31 +93,31 @@ func (g *Guard) addIfUnique(point [2]int) {
 
 func (g *Guard) Step(lab_map [][]int) {
     
-    x_check, y_check := g.row, g.col
+    _row, _col := g.row, g.col
 
     switch g.heading {
     case North:
-        x_check -= 1 
+        _row -= 1 
     case South:
-        x_check += 1 
+        _row += 1 
     case East:
-        y_check -= 1 
+        _col += 1 
     case West:
-        y_check += 1
+        _col -= 1
     }
 
     // check if the next position will be out of the map
-    if x_check >= len(lab_map[0]) || y_check >= len(lab_map[1]) {
+    if _row < 0 || _col < 0 || _row > len(lab_map) - 1 || _col > len(lab_map[0]) - 1 {
         g.in_map = false
-    } else if lab_map[x_check][y_check] == '#' {
+    } else if lab_map[_row][_col] == '#' {
         if g.heading == 3 {
             g.heading = 0
         } else {
             g.heading += 1
         }
     } else {
-        g.row = x_check
-        g.col = y_check
+        g.row = _row
+        g.col = _col
         g.addIfUnique([2]int{g.row, g.col})
     }
 
@@ -162,15 +161,10 @@ func clearScreen() {
     fmt.Print("\033[H\033[2J")
 }
 
-func main() {
-    lab_map := getLabMap("./test_map.txt")
-   
-    fmt.Println(len(lab_map[0]))
-    fmt.Println(len(lab_map[0]))
-
+func findGuard(lab_map[][]int) (int,int) {
     row0 := 0
     col0 := 0
-    for i := 0; i < len(lab_map[0]); i++ {
+    for i := 0; i < len(lab_map); i++ {
         for j := 0; j < len(lab_map[1]); j++ {
             if lab_map[i][j] == '^' {
                 row0 = i
@@ -178,17 +172,24 @@ func main() {
             }
         }
     }
+    return row0, col0
+}
+
+func main() {
+    lab_map := getLabMap("./puzzle_input.txt")
+    
+    row0, col0 := findGuard(lab_map)
+    fmt.Printf("Guard starting at: (%d,%d)\n", row0, col0)
 
     guard := NewGuard(row0, col0)
     for {
         if !guard.in_map {
             break
         }
-        guard.Step(lab_map)
         // clearScreen()
         // drawMap(guard, lab_map)
-        // time.Sleep(time.Millisecond * 100)
-        // guard.PrintInfo()
+        // time.Sleep(time.Millisecond * 50)
+        guard.Step(lab_map)
     }
-    // fmt.Println(len(guard.visited))
+    fmt.Println("Unique locations:", len(guard.visited))
 }
